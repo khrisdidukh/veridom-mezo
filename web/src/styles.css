@@ -56,14 +56,15 @@ h1, h2, h3 { margin: 0; line-height: 1.15; }
   border-bottom: 1px solid var(--line);
 }
 .topbar .wrap { display: flex; align-items: center; gap: 18px; height: 60px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
+.brand { white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
 .brand:hover { text-decoration: none; }
 .brand small { font-weight: 500; color: var(--ink-3); }
 .nav { display: flex; gap: 4px; margin-left: 8px; }
-.nav a { padding: 6px 10px; border-radius: 8px; color: var(--ink-2); font-size: 14px; }
+.nav a { white-space: nowrap; padding: 6px 10px; border-radius: 8px; color: var(--ink-2); font-size: 14px; }
 .nav a.active, .nav a:hover { background: var(--paper-2); color: var(--ink); text-decoration: none; }
 .spacer { flex: 1; }
 .netpill {
+  white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2);
   border: 1px solid var(--line); background: var(--paper-2); border-radius: 999px; padding: 4px 10px;
 }
@@ -78,6 +79,8 @@ main { padding: 28px 0 80px; }
   .cols-2, .cols-3, .main-side { grid-template-columns: 1fr; }
   .nav { display: none; }
 }
+@media (max-width: 1480px) { .brand small { display: none; } }
+@media (max-width: 640px) { .netpill { display: none; } }
 
 /* ---------- cards ---------- */
 .card {

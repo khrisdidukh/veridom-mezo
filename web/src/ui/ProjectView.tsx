@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { keccak256, parseUnits, toBytes, type Address } from "viem";
-import { MEZO, addressUrl, txUrl } from "../config";
+import { MEZO, NETWORK_LABEL, addressUrl, txUrl } from "../config";
 import { btc, date, duration, musd, pct, relative, short, usd } from "../lib/format";
 import { deadlineIn, adjustHints, musdBalance, quoteMusdToBtc, signMusdPermit, signRepayMUSD, signWithdrawMUSD } from "../lib/mezo";
 import {
@@ -557,7 +557,7 @@ const EVENT_TEXT: Record<string, (a: Record<string, unknown>) => string> = {
 function Activity({ address }: { address: Address }) {
   const { data } = usePoll(() => loadActivity(address), [address], 20000);
   return (
-    <Card title="On-chain activity" sub="Every step is a Mezo testnet transaction">
+    <Card title="On-chain activity" sub={`Every step is a transaction on ${NETWORK_LABEL}`}>
       {!data && <div className="small muted">Loading events…</div>}
       {data && data.length === 0 && <div className="small muted">No events yet.</div>}
       <ul className="activity">

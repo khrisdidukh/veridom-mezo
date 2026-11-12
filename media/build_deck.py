@@ -129,10 +129,10 @@ f"""
 # 7 live
 f"""
 <div class="eyebrow">Live on Mezo testnet (chain 31611)</div>
-<h2>Every feature executed on chain, by four separate wallets.</h2>
+<h2>{"Every feature executed on chain, by four separate wallets." if n_tx else "Every feature runs on chain, by four separate wallets."}</h2>
 <div class="cols2">
 <div>
-<p class="body"><b>{n_tx} transactions</b> run the full lifecycle: trove opened, permit funding, relayed trove draw into escrow,
+<p class="body"><b>{n_tx if n_tx else "A scripted run of ~45"} transactions</b> run the full lifecycle: trove opened, permit funding, relayed trove draw into escrow,
 yield harvest, approvals and inspections, a stage accepted by silence and paid out <b>in BTC through the Mezo pool</b>,
 defect → dispute → arbiter split, retention dispute, and unused budget repaying the trove.</p>
 <p class="body small">Factory {a(factory)}<br>Lens {a(lens)}</p>
