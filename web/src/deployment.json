@@ -1,0 +1,11 @@
+{
+  "network": "mezo-testnet",
+  "chainId": 31611,
+  "factory": null,
+  "lens": null,
+  "escrowImplementation": null,
+  "deployedAtBlock": 0,
+  "demoProject": null,
+  "showcaseProjects": [],
+  "transactions": []
+}

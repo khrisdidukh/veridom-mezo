@@ -1,0 +1,12 @@
+keys/
+.env
+node_modules/
+web/dist/
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/deployments/local-fork.json
+contracts/deployments/demo-run-local.json
+*.log
+__pycache__/
+media/out/
