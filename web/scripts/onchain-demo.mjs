@@ -100,12 +100,23 @@ const nowS = async () => Number((await pub.getBlock()).timestamp);
 async function tx(label, w, req) {
   const { request } = await pub.simulateContract({ ...req, account: w.account });
   const hash = await w.client.writeContract(request);
-  const r = await pub.waitForTransactionReceipt({ hash, timeout: 180_000 });
+  const r = await receipt(hash);
   if (r.status !== "success") throw new Error(`${label} reverted: ${hash}`);
   log.txs.push({ label, from: w.name, hash, block: Number(r.blockNumber) });
   save();
   console.log(`  ✓ ${label.padEnd(58)} ${LOCAL ? hash : `${EXPLORER}/tx/${hash}`}`);
   return r;
+}
+
+async function receipt(hash) {
+  for (let i = 0; i < 90; i++) {
+    try {
+      return await pub.waitForTransactionReceipt({ hash, timeout: 60_000 });
+    } catch (e) {
+      await sleep(2000);
+    }
+  }
+  throw new Error(`no receipt for ${hash}`);
 }
 
 async function sendBtc(label, from, to, value) {
@@ -195,6 +206,22 @@ async function stageApproved(esc, i, name) {
   await tx(`Inspector passes stage ${i + 1} on site`, W.inspector, { ...E(esc), functionName: "inspect", args: [BigInt(i), true, note(`inspection report ${i}`)] });
 }
 
+async function finishA(A, plan) {
+  for (const i of [3, 4, 5]) {
+    await stageApproved(A, i, plan[i][0]);
+    await tx(`Contractor claims stage ${i + 1} in MUSD`, W.contractor, { ...E(A), functionName: "claim", args: [BigInt(i), 0, 0n] });
+  }
+  await tx("Homeowner flags a warranty defect on the retention", W.homeowner, { ...E(A), functionName: "disputeRetention", args: [note("damp basement wall")] });
+  await tx("Arbiter releases 10 MUSD of retention to contractor", W.arbiter, { ...E(A), functionName: "resolveRetention", args: [parseUnits("10", 18)] });
+  const free = await pub.readContract({ ...E(A), functionName: "freeBalance" });
+  const d2 = BigInt((await nowS()) + 3600);
+  const rsig = await signRepay(free, d2);
+  const [u2, l2] = await hints(W.homeowner.address, -free);
+  await tx(`Unused ${fmt(free)} MUSD repays the homeowner’s trove (RepayMUSD sig)`, W.homeowner, { ...E(A), functionName: "repayTroveFromFree", args: [free, u2, l2, d2, rsig] });
+  const h = await pub.readContract({ address: deployment.lens, abi: lensAbi, functionName: "troveHealth", args: [W.homeowner.address] });
+  console.log(`  trove after repay: debt ${fmt(h.debt)} MUSD, ICR ${fmt(h.icr * 100n)}%`);
+}
+
 async function main() {
   const chainId = await pub.getChainId();
   if (chainId !== 31611) throw new Error(`wrong chain ${chainId}`);
@@ -213,11 +240,11 @@ async function main() {
   }
   if (status !== 1) {
     // collateral: everything the deployer can spare, but at least enough for ~200 % on 3,000 MUSD
-    const spare = (await pub.getBalance({ address: W.deployer.address })) - parseUnits("0.002", 18);
+    const spare = (await pub.getBalance({ address: W.deployer.address })) - parseUnits("0.0005", 18);
     const cap = parseUnits("0.25", 18);
     const coll = spare > cap ? cap : spare;
-    const minColl = (3_100n * 10n ** 18n * 2n * 10n ** 18n) / price; // 200 % on ~3.1k debt
-    if (coll < (minColl * 3n) / 4n) throw new Error(`Not enough testnet BTC: have ${fmt(coll, 5)}, need ≈ ${fmt(minColl, 5)} BTC. Request more from the faucet.`);
+    const minColl = (2_160n * 10n ** 18n * 145n * 10n ** 16n) / price; // 145 % on ~2.16k debt after the first draw
+    if (coll < minColl) throw new Error(`Not enough testnet BTC: have ${fmt(coll, 5)}, need ≈ ${fmt(minColl, 5)} BTC. Request more from the faucet.`);
     await sendBtc(`Fund homeowner with ${fmt(coll, 5)} BTC (collateral + gas)`, W.deployer, W.homeowner.address, coll);
     const debt = parseUnits("1800", 18);
     const fee = await pub.readContract({ address: M.borrowerOperations, abi: mezoAbi, functionName: "getBorrowingFee", args: [debt] });
@@ -233,23 +260,23 @@ async function main() {
 
   // ---------- 2. Project A: full lifecycle ----------
   if (ONLY === "all" || ONLY === "A") {
-    console.log("\nProject A — complete lifecycle (BTVG Ratenplan B, 2,000 MUSD)");
-    const plan = [["Start of works", 200, 30], ["Shell & roof", 600, 90], ["Rough-in installations", 400, 150], ["Facade & windows", 240, 210], ["Ready to move in", 340, 270], ["Completion", 220, 330]];
-    const A = await createProject("Demo house A · full lifecycle (testnet)", "https://veridom.space", 90, 200, 120, parseUnits("1.5", 18), plan);
+    console.log("\nProject A — complete lifecycle (BTVG Ratenplan B, 1,000 MUSD)");
+    const plan = [["Start of works", 100, 30], ["Shell & roof", 300, 90], ["Rough-in installations", 200, 150], ["Facade & windows", 120, 210], ["Ready to move in", 170, 270], ["Completion", 110, 330]];
+    const A = await createProject("Demo house A · full lifecycle (testnet)", "https://veridom.space", 90, 200, 120, parseUnits("1.4", 18), plan);
     log.projects.A = A;
     save();
     await tx("Contractor accepts the payment plan", W.contractor, { ...E(A), functionName: "acceptProject" });
 
     const d1 = BigInt((await nowS()) + 3600);
-    const p1 = await permit(W.homeowner, A, parseUnits("1200", 18), d1);
-    await tx("Homeowner funds 1,200 MUSD (EIP-2612 permit, 1 tx)", W.homeowner, { ...E(A), functionName: "fundWithPermit", args: [parseUnits("1200", 18), d1, p1.v, p1.r, p1.s] });
+    const p1 = await permit(W.homeowner, A, parseUnits("850", 18), d1);
+    await tx("Homeowner funds 850 MUSD (EIP-2612 permit, 1 tx)", W.homeowner, { ...E(A), functionName: "fundWithPermit", args: [parseUnits("850", 18), d1, p1.v, p1.r, p1.s] });
 
-    const draw = parseUnits("900", 18);
+    const draw = parseUnits("150", 18);
     const sig = await signWithdraw(draw, A, d1);
     const [u1, l1] = await hints(W.homeowner.address, draw);
-    await tx("Relayer submits homeowner-signed trove draw: 900 MUSD → escrow", W.relayer, { ...E(A), functionName: "drawFromTrove", args: [draw, u1, l1, d1, sig] });
+    await tx("Relayer submits homeowner-signed trove draw: 150 MUSD → escrow", W.relayer, { ...E(A), functionName: "drawFromTrove", args: [draw, u1, l1, d1, sig] });
     h = await health();
-    console.log(`  trove after draw: debt ${fmt(h.debt)} MUSD, ICR ${fmt(h.icr * 100n)}% (guard 150 %)`);
+    console.log(`  trove after draw: debt ${fmt(h.debt)} MUSD, ICR ${fmt(h.icr * 100n)}% (guard 140 %)`);
 
     await tx("Harvest: poke PCV distribution, pay sMUSD yield to homeowner", W.relayer, { ...E(A), functionName: "harvest" });
 
@@ -261,7 +288,7 @@ async function main() {
     await tx("Contractor reports stage 2 “Shell & roof” done", W.contractor, { ...E(A), functionName: "requestRelease", args: [1n, note(`veridom.space/checkpoint/${A}/1`)] });
     await tx("Inspector passes stage 2 (homeowner stays silent)", W.inspector, { ...E(A), functionName: "inspect", args: [1n, true, note("inspection report 1")] });
     await waitSeconds(95);
-    const net2 = parseUnits("588", 18);
+    const net2 = parseUnits("294", 18);
     if (LOCAL) {
       await tx("Contractor claims stage 2 (deemed accepted) in MUSD [fork: BTC precompile n/a]", W.contractor, { ...E(A), functionName: "claim", args: [1n, 0, 0n] });
     } else {
@@ -275,8 +302,15 @@ async function main() {
     await tx("Homeowner reports defects (missing sockets)", W.homeowner, { ...E(A), functionName: "reject", args: [2n, note("missing sockets in kitchen")] });
     await tx("Contractor re-requests after fix", W.contractor, { ...E(A), functionName: "requestRelease", args: [2n, note(`veridom.space/checkpoint/${A}/2b`)] });
     await tx("Contractor opens dispute (homeowner unresponsive)", W.contractor, { ...E(A), functionName: "dispute", args: [2n, note("owner unresponsive")] });
-    await tx("Arbiter awards 360 of 400 MUSD", W.arbiter, { ...E(A), functionName: "resolveDispute", args: [2n, parseUnits("360", 18)] });
-
+    await tx("Arbiter awards 180 of 200 MUSD", W.arbiter, { ...E(A), functionName: "resolveDispute", args: [2n, parseUnits("180", 18)] });
+    await finishA(A, plan);
+  }
+  if (ONLY === "A2") {
+    const plan = [["Start of works", 100, 30], ["Shell & roof", 300, 90], ["Rough-in installations", 200, 150], ["Facade & windows", 120, 210], ["Ready to move in", 170, 270], ["Completion", 110, 330]];
+    await finishA(log.projects.A, plan);
+  }
+  if (false) {
+    const A = null, plan = [];
     for (const i of [3, 4, 5]) {
       await stageApproved(A, i, plan[i][0]);
       await tx(`Contractor claims stage ${i + 1} in MUSD`, W.contractor, { ...E(A), functionName: "claim", args: [BigInt(i), 0, 0n] });
@@ -284,7 +318,7 @@ async function main() {
 
     // warranty: homeowner flags defect, arbiter splits retention
     await tx("Homeowner flags a warranty defect on the retention", W.homeowner, { ...E(A), functionName: "disputeRetention", args: [note("damp basement wall")] });
-    await tx("Arbiter releases 30 MUSD of retention to contractor", W.arbiter, { ...E(A), functionName: "resolveRetention", args: [parseUnits("30", 18)] });
+    await tx("Arbiter releases 10 MUSD of retention to contractor", W.arbiter, { ...E(A), functionName: "resolveRetention", args: [parseUnits("10", 18)] });
 
     // close-out: free money pays down the trove
     const free = await pub.readContract({ ...E(A), functionName: "freeBalance" });
@@ -297,7 +331,7 @@ async function main() {
   }
 
   // ---------- 3. Project B: live, in progress ----------
-  if (ONLY === "all" || ONLY === "B") {
+  if (ONLY === "all" || ONLY === "B" || ONLY === "A2") {
     console.log("\nProject B — live project left mid-construction for the web app");
     const planB = [["Foundation slab", 90, 45], ["Walls", 150, 120], ["Roof", 120, 180], ["Rough-in", 120, 240], ["Finish", 120, 300]];
     const B = await createProject("Family home, Waldviertel (testnet demo)", "https://veridom.space", 7 * 86400, 500, 365 * 86400, parseUnits("1.5", 18), planB);

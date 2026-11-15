@@ -1,0 +1,7 @@
+{
+  "chainId": 31611,
+  "deployedAtBlock": 16793394,
+  "escrowImplementation": "0xCE6c967aEc8713d2B5C190a1B200eafF9EF2269B",
+  "factory": "0x47910F0730f18764312778D3522878166b09950D",
+  "lens": "0x3DB3E2B52d82DFf3b56A295197fAc76D6f1b1115"
+}

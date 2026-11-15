@@ -17,6 +17,7 @@ deployed = bool(dep.get("factory"))
 APP = "https://khrisdidukh.github.io/veridom-mezo/"
 REPO = "https://github.com/khrisdidukh/veridom-mezo"
 DECK = f"{REPO}/blob/main/docs/veridom-build-fund-deck.pdf"
+DECK_PAGES = APP + "deck.pdf"
 VIDEO_FALLBACK = f"{REPO}/blob/main/docs/veridom-build-fund-demo.mp4"
 
 def link(a):
@@ -51,8 +52,8 @@ BTC-backed construction escrow
 ## Links
 - Live app (Mezo testnet): {APP}
 - GitHub (public): {REPO}
-- Project deck (PDF): {DECK}
-- 2-minute pitch video: ⚠ your YouTube link — fallback file in the repo: {VIDEO_FALLBACK}
+- Project deck (PDF): {DECK_PAGES} (also in the repo: {DECK})
+- 2-minute pitch video: ⚠ your YouTube link (upload media/out/veridom-build-fund-demo.mp4)
 - Existing product: https://veridom.space
 
 ## TL;DR
@@ -95,6 +96,20 @@ Working testnet prototype (beyond a demo): ownerless contracts with unit, invari
 Khrystyna Didukh (Vienna, Austria) — solo builder. Founder of Veridom (veridom.space), co-founder & CTO of Avara Bio. Ran 358, an exotic-flower import business in Ukraine, for ten years (2012–2022) and directed its web shops, mobile apps and CRM; three years at PwC; two MA degrees (Ivan Franko University, Lviv). Estonia e-Residency Envoy and UNDP Woman Innovator. GitHub: khrisdidukh · LinkedIn: linkedin.com/in/khrystynadidukh358
 
 ---
+
+## YouTube — title
+Veridom Build Fund — build your house on Bitcoin without selling it (Mezo hackathon demo)
+
+## YouTube — description
+Veridom Build Fund is a construction escrow on Mezo. A homeowner borrows MUSD against her BTC (a Mezo trove), the contractor's instalment plan is locked in an ownerless escrow, each stage is paid after homeowner + inspector sign-off (or automatically after a silent review window), and the budget that is waiting earns MUSD Savings Rate yield. The contractor can take payment in BTC through the Mezo MUSD/BTC pool.
+
+Everything in this video is a real transaction on Mezo testnet (chain 31611), sent from the web app. Testnet only, not audited.
+
+Live app: {APP}
+Code: {REPO}
+Veridom: https://veridom.space
+
+Built by Khrystyna Didukh for the Mezo "Build with MUSD and MEZO" hackathon (Wave 2).
 
 ## On-chain proof (for the description or a comment)
 {addresses}

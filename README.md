@@ -11,10 +11,73 @@ with photo sign-off; Build Fund turns that sign-off into the payment trigger.
 
 - **Live app (Mezo testnet):** https://khrisdidukh.github.io/veridom-mezo/
 - **Hackathon:** Mezo "Build with MUSD and MEZO", Wave 2 — Track 1 (DeFi: borrowing + yield) and Track 2 (Access & Distribution)
-- **Status:** testnet only. No real users, no real money. Not audited.
+- **Status:** deployed and verified on Mezo testnet; the full lifecycle (45 transactions, four wallets) has run on chain, including a stage paid out in BTC through the Mezo pool. Testnet only — no real users, no real money, not audited.
 
 <!-- DEPLOYMENT:START -->
-_Deployment details are filled in by `scripts/update-readme.mjs` after the testnet run._
+## Deployment (Mezo testnet, chain 31611)
+
+All three contracts are verified on the Mezo explorer. The deck is in [`docs/veridom-build-fund-deck.pdf`](docs/veridom-build-fund-deck.pdf).
+
+
+| Contract | Address |
+| --- | --- |
+| BuildFundFactory | [`0x47910F0730f18764312778D3522878166b09950D`](https://explorer.test.mezo.org/address/0x47910F0730f18764312778D3522878166b09950D) |
+| BuildFundEscrow (implementation) | [`0xCE6c967aEc8713d2B5C190a1B200eafF9EF2269B`](https://explorer.test.mezo.org/address/0xCE6c967aEc8713d2B5C190a1B200eafF9EF2269B) |
+| BuildFundLens | [`0x3DB3E2B52d82DFf3b56A295197fAc76D6f1b1115`](https://explorer.test.mezo.org/address/0x3DB3E2B52d82DFf3b56A295197fAc76D6f1b1115) |
+| Demo project A — complete lifecycle | [`0x137544Da3A5bF42e2B52EF660afdC041Cc3f16D6`](https://explorer.test.mezo.org/address/0x137544Da3A5bF42e2B52EF660afdC041Cc3f16D6) |
+| Demo project B — in progress (default in the app) | [`0x7c659BF1b70bb2fbDe67DdC38C9A1Ebfd24eCAa3`](https://explorer.test.mezo.org/address/0x7c659BF1b70bb2fbDe67DdC38C9A1Ebfd24eCAa3) |
+
+<details><summary><b>45 demo transactions</b> (full lifecycle, four wallets: homeowner, contractor, inspector, arbiter/relayer)</summary>
+
+| # | Step | From | Tx |
+| --- | --- | --- | --- |
+| 1 | Gas for contractor | deployer | [0x306bfff1…](https://explorer.test.mezo.org/tx/0x306bfff1fa958ba557a565a0953ec64df05e90fd3de7e838f073eac54e21c24c) |
+| 2 | Gas for inspector | deployer | [0x930ce8e1…](https://explorer.test.mezo.org/tx/0x930ce8e13e2d3ecd9857e9597e3229d5364b8284965a121e309b7822493413c5) |
+| 3 | Fund homeowner with 0.0491 BTC (collateral + gas) | deployer | [0xa1c4cb64…](https://explorer.test.mezo.org/tx/0xa1c4cb643f27419528775ae1442f8984a96c07df5e2a67b707a7fad79038dc0c) |
+| 4 | Homeowner opens Mezo trove: 0.0486 BTC → 1,800 MUSD | homeowner | [0x9baf13e3…](https://explorer.test.mezo.org/tx/0x9baf13e39e3f163f4a9715ecc190e93535fd3e98e0769a981d2e4af7390d3314) |
+| 5 | Create build fund “Demo house A · full lifecycle (testnet)” | homeowner | [0xa37b4e97…](https://explorer.test.mezo.org/tx/0xa37b4e971a676ae19dcfb08777f27515be4fe39c80b3928f95b8428992375c8e) |
+| 6 | Contractor accepts the payment plan | contractor | [0xba0c42fa…](https://explorer.test.mezo.org/tx/0xba0c42fa611c3630f71a4fdda9d81d8ee9898e954389528c5b99be3065678b38) |
+| 7 | Homeowner funds 850 MUSD (EIP-2612 permit, 1 tx) | homeowner | [0x8b3bd93b…](https://explorer.test.mezo.org/tx/0x8b3bd93b6c31eb8fc6e912c0c133d0d511ec08a7bb159808cb87636ca5f82cb3) |
+| 8 | Relayer submits homeowner-signed trove draw: 150 MUSD → escrow | relayer | [0xc0374571…](https://explorer.test.mezo.org/tx/0xc0374571d8673bc328cf4cefb247544f2ca5021fa064fe376d9a49e11236af2a) |
+| 9 | Harvest: poke PCV distribution, pay sMUSD yield to homeowner | relayer | [0x6841dc6f…](https://explorer.test.mezo.org/tx/0x6841dc6f0aa7ee2d30871e7aa952757dcedf26c59d4f78f55571993b9f1e0f21) |
+| 10 | Contractor reports stage 1 “Start of works” done | contractor | [0x853bb5ea…](https://explorer.test.mezo.org/tx/0x853bb5ea29cc1f2f0a6d2014c40011f1eb781e8a3181784b7b68017cbd25b442) |
+| 11 | Homeowner approves stage 1 | homeowner | [0xfcf63435…](https://explorer.test.mezo.org/tx/0xfcf63435cf26813d97ef7db6132326fcb3c0058391425378354c159b80a18e17) |
+| 12 | Inspector passes stage 1 on site | inspector | [0xf19a3a49…](https://explorer.test.mezo.org/tx/0xf19a3a496096045d996a0064bd2bb57d179ec154ed05ee70d402aa342bdc7d2b) |
+| 13 | Contractor claims stage 1 in MUSD | contractor | [0x5bbcaa37…](https://explorer.test.mezo.org/tx/0x5bbcaa377a48aec36a1c08cfce731f3d544ff1131a71a5cb2e7f24cac940396b) |
+| 14 | Contractor reports stage 2 “Shell & roof” done | contractor | [0x33ca9686…](https://explorer.test.mezo.org/tx/0x33ca9686c853d3d3ab884c6f4f173b9ef87e75b33e988a4203f93c8a53fa21b6) |
+| 15 | Inspector passes stage 2 (homeowner stays silent) | inspector | [0x44629e3d…](https://explorer.test.mezo.org/tx/0x44629e3d98985e3e1bc69da53c9156672c1e9dcf4736a341e2c4c5b2801350c7) |
+| 16 | Contractor claims stage 2 in BTC via Mezo pool (min 0.003737 BTC) | contractor | [0xce6b2ee4…](https://explorer.test.mezo.org/tx/0xce6b2ee4d8fc1fda97802b4cd99092fc164488b6e43b89565d1130ebe36e168d) |
+| 17 | Contractor reports stage 3 done | contractor | [0x8f59baf4…](https://explorer.test.mezo.org/tx/0x8f59baf4de8245bd3df7858c89ccf38d79ac67bad26de88fe44651cfaa5aa108) |
+| 18 | Homeowner reports defects (missing sockets) | homeowner | [0x0551babd…](https://explorer.test.mezo.org/tx/0x0551babd3fe49790386493a16fc804eae52a2c17eeb15d817a58006a4803f193) |
+| 19 | Contractor re-requests after fix | contractor | [0x8bf24744…](https://explorer.test.mezo.org/tx/0x8bf2474469e2a1bbf1bc6144e32eadd503bb09b025146c6e3df42f111f87a8fe) |
+| 20 | Contractor opens dispute (homeowner unresponsive) | contractor | [0xc72711ee…](https://explorer.test.mezo.org/tx/0xc72711eeeac435b8b4f374925c5ff0baad6b39c97b80fd123dca8abd75801edc) |
+| 21 | Arbiter awards 180 of 200 MUSD | arbiter (Veridom mediator) | [0xddd782a3…](https://explorer.test.mezo.org/tx/0xddd782a3ea346edc5e03c1c5cded908d375efdead9868819851eb730509f48a1) |
+| 22 | Contractor reports stage 4 “Facade & windows” done | contractor | [0x18efae5c…](https://explorer.test.mezo.org/tx/0x18efae5ce3b1c75cfe26ac54d0ced34291fea0dfa14cad796324daf4088e4394) |
+| 23 | Homeowner approves stage 4 | homeowner | [0x71f97ee4…](https://explorer.test.mezo.org/tx/0x71f97ee458a9de56f64342576b6f9eef6d531b3bd247c744144fe798f985ce74) |
+| 24 | Inspector passes stage 4 on site | inspector | [0xd720bdfb…](https://explorer.test.mezo.org/tx/0xd720bdfb161778a0f219778e9056d5648e04471e4a792fb94795b6f1e97013bf) |
+| 25 | Contractor claims stage 4 in MUSD | contractor | [0xd6d9ac80…](https://explorer.test.mezo.org/tx/0xd6d9ac800efd300ed1d841cacb7fe8fb9254691bf072244d788bb25404d27e86) |
+| 26 | Contractor reports stage 5 “Ready to move in” done | contractor | [0x97b0728f…](https://explorer.test.mezo.org/tx/0x97b0728fc52a3b351f4dfa0e21d61d5450a5c572cdcdfb395e079fbb6881fbd0) |
+| 27 | Homeowner approves stage 5 | homeowner | [0x089e677d…](https://explorer.test.mezo.org/tx/0x089e677de9b86ca3598bd0b04ee5480b1862fcd86579e35bd8904974be19bf28) |
+| 28 | Inspector passes stage 5 on site | inspector | [0x92f0d8e5…](https://explorer.test.mezo.org/tx/0x92f0d8e50e9ea7b8bb924bd5328262d5bdca33f6117d3cae4166a7c09f27d9a8) |
+| 29 | Contractor claims stage 5 in MUSD | contractor | [0xd7d98b46…](https://explorer.test.mezo.org/tx/0xd7d98b46aa695317d429179961aa6e113a287bc793145eaf700431beb1081e44) |
+| 30 | Contractor reports stage 6 “Completion” done | contractor | [0xb0bd4d44…](https://explorer.test.mezo.org/tx/0xb0bd4d44c0f7a073bd8852a3937e2c00dc1393023a5f7cfb6c7cb67a779e9c0b) |
+| 31 | Homeowner approves stage 6 | homeowner | [0x1d1429d2…](https://explorer.test.mezo.org/tx/0x1d1429d20fe575f48b85774e39baf5372a1fc229c07e2e04aa007b08afc3295d) |
+| 32 | Inspector passes stage 6 on site | inspector | [0xe3a95fb5…](https://explorer.test.mezo.org/tx/0xe3a95fb5337a3087e3e1a273056fda2436f25e8db8eca343c6b640da8cefee8c) |
+| 33 | Contractor claims stage 6 in MUSD | contractor | [0x5e5d4601…](https://explorer.test.mezo.org/tx/0x5e5d46011fb044eb46bdfa9ec3cfcbd3ec30936ee3ea14dea62dad205b434f7d) |
+| 34 | Homeowner flags a warranty defect on the retention | homeowner | [0x5701617b…](https://explorer.test.mezo.org/tx/0x5701617b809cfa379460e7d02e35bc66e6b0664e249528509f37ee3bb723d693) |
+| 35 | Arbiter releases 10 MUSD of retention to contractor | arbiter (Veridom mediator) | [0xb11ef04c…](https://explorer.test.mezo.org/tx/0xb11ef04cf15f49117a9a806f7af47c30f1ee9aad2483fac9dd2b8985a05ab1f8) |
+| 36 | Unused 29.6 MUSD repays the homeowner’s trove (RepayMUSD sig) | homeowner | [0xb1aef1f7…](https://explorer.test.mezo.org/tx/0xb1aef1f7268863facb922f15bcf80ef6baca4785abd9fe939249838ef389f2c8) |
+| 37 | Create build fund “Family home, Waldviertel (testnet demo)” | homeowner | [0xc7fc7dbf…](https://explorer.test.mezo.org/tx/0xc7fc7dbfe248ab3698d6751b11e89102dc9c67d2d928770f53d3506cac632189) |
+| 38 | Contractor accepts the payment plan | contractor | [0x8064354c…](https://explorer.test.mezo.org/tx/0x8064354c247aa3be707d2f320d0f572e5442b7fa53709d3adc3c5bb11a20b3b9) |
+| 39 | Homeowner funds 600 MUSD | homeowner | [0x96ae86eb…](https://explorer.test.mezo.org/tx/0x96ae86eba3ffd01a5144fe2330e0e077fe424ccf20b4c99a66ae6f1ba14efa14) |
+| 40 | Contractor reports stage 1 “Foundation slab” done | contractor | [0xe78d7422…](https://explorer.test.mezo.org/tx/0xe78d742218e0dd97ad428322ced1cf6a7a1285cd08b3f8a840bbc32f15a1bcfd) |
+| 41 | Homeowner approves stage 1 | homeowner | [0xa2753ff2…](https://explorer.test.mezo.org/tx/0xa2753ff2cb97f3ae6670e189f93ec1af5ca6b763e5763a07c69a1ec5006cc040) |
+| 42 | Inspector passes stage 1 on site | inspector | [0x292c83e4…](https://explorer.test.mezo.org/tx/0x292c83e44b1374b938c160abe08aa4ed7b137b986f693985750ff9dcf1fc2772) |
+| 43 | Contractor claims stage 1 in MUSD | contractor | [0x6ac12d8e…](https://explorer.test.mezo.org/tx/0x6ac12d8e1019b22d83ae433278b7447109486bf1de8ea5e80c22b333741e1a38) |
+| 44 | Contractor reports stage 2 “Walls” done | contractor | [0x0770d7f8…](https://explorer.test.mezo.org/tx/0x0770d7f86ab7d9fbe376d7f23a70143a2b96cfd6003a2ade018b720c0abcb666) |
+| 45 | Inspector passes stage 2 | inspector | [0xdfec89be…](https://explorer.test.mezo.org/tx/0xdfec89be0dd1a6d448e23c3b48cb558925baffdbaaf6a555bdbf8907a4bbcfae) |
+
+</details>
 <!-- DEPLOYMENT:END -->
 
 ## Why
@@ -143,7 +206,7 @@ forge test --match-path "test/fork/*" --fork-url https://rpc.test.mezo.org  # 3 
 cd contracts && forge build && forge test
 
 # deploy to Mezo testnet (key in an env var or file you control)
-forge script script/Deploy.s.sol --rpc-url mezo_testnet --broadcast --private-key "$PRIVATE_KEY"
+PRIVATE_KEY=0x... forge script script/Deploy.s.sol --rpc-url mezo_testnet --broadcast
 
 # web app
 cd web && npm install && node ../scripts/export-abi.mjs && npm run dev
