@@ -52,7 +52,7 @@ BTC-backed construction escrow
 ## Links
 - Live app (Mezo testnet): {APP}
 - GitHub (public): {REPO}
-- Project deck (PDF): {DECK_PAGES} (also in the repo: {DECK})
+- Project deck (PDF): {DECK}
 - 2-minute pitch video: ⚠ your YouTube link (upload media/out/veridom-build-fund-demo.mp4)
 - Existing product: https://veridom.space
 
